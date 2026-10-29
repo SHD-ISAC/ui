@@ -63,20 +63,24 @@ jobs:
           fi
           tar -czf x-ui-linux-amd64.tar.gz x-ui
           sha256sum x-ui-linux-amd64.tar.gz > x-ui-linux-amd64.tar.gz.sha256
-      - name: Publish no-sponsor-latest
+      - name: Publish immutable no-sponsor release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          tag=no-sponsor-latest
+          tag="no-sponsor-${GITHUB_SHA}"
           short="${GITHUB_SHA:0:8}"
-          notes="No-sponsor branch at ${GITHUB_SHA}. Binary-only (Xray and config unchanged). Requires XUI_DISABLE_SPONSOR=true in systemd environment."
-          git tag -f "${tag}" "${GITHUB_SHA}"
-          git push -f origin "refs/tags/${tag}"
+          notes="Build from no-sponsor commit ${GITHUB_SHA}. Binary-only; Xray and existing config are not changed. Opt out using XUI_DISABLE_SPONSOR=true."
+          # Never move published tags. Protected tags may be created, but not rewritten.
+          if ! git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
+            git tag "${tag}" "${GITHUB_SHA}"
+            git push origin "refs/tags/${tag}"
+          fi
           if gh release view "${tag}" >/dev/null 2>&1; then
-            gh release upload "${tag}" x-ui-linux-amd64.tar.gz x-ui-linux-amd64.tar.gz.sha256 --clobber
-            gh release edit "${tag}" --prerelease --latest=false --title "No-Sponsor ${short}" --notes "${notes}"
+            # Re-runs for an existing immutable commit should not mutate its release.
+            echo "Release ${tag} already exists; leaving immutable assets unchanged"
           else
             gh release create "${tag}" x-ui-linux-amd64.tar.gz x-ui-linux-amd64.tar.gz.sha256 \
-              --target "${GITHUB_SHA}" --prerelease --latest=false --title "No-Sponsor ${short}" --notes "${notes}"
+              --target "${GITHUB_SHA}" --prerelease --latest=false \
+              --title "No-Sponsor ${short}" --notes "${notes}"
           fi

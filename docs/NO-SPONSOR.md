@@ -7,7 +7,7 @@ MHSanaei/3x-ui.
   It returns empty sponsor data, rejects logos, and prevents sponsor-source fetching.
   Sponsors navigation is not removed.
 - Pinned-action CI builds a static **Linux amd64 panel binary only** and publishes
-  the rolling prerelease `no-sponsor-latest`. Wait for a successful Actions run.
+  immutable releases tagged `no-sponsor-<40-character commit SHA>`. Wait for a successful Actions run.
   It does **not** update Xray, geosite/geoip, certificates, system service files,
   or other bundled components.
 - Supported updater: `scripts/update-no-sponsor.sh`. It checks SHA256 and archive
@@ -33,6 +33,8 @@ sudo systemctl status x-ui
 ```
 
 Check your panel, inbound ports, subscription links, and client connectivity.
+The updater uses Python 3 to select the newest published immutable no-sponsor release with both required assets. Set `XUI_NO_SPONSOR_TAG=no-sponsor-<full commit SHA>` to install a specific release.
+
 The official built-in updater, upstream install script and `x-ui` menu still
 target MHSanaei/3x-ui: **do not use their Update functions**, as they could
 overwrite your patch. Continue using the updater above, downloading a fresh
