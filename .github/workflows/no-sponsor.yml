@@ -8,6 +8,7 @@ on:
       - "go.sum"
       - ".nvmrc"
       - "frontend/**"
+      - "scripts/update-no-sponsor.sh"
       - ".github/workflows/no-sponsor.yml"
   workflow_dispatch:
 permissions:
